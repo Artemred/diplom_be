@@ -72,7 +72,7 @@ class WorkerExtrasSerializer(ModelSerializer):
 
 #-------------------------------vacancy------------------------------
 class VacancySkillsSerializer(ModelSerializer):
-    skill_details = SkillsSerializer(read_only=True)
+    skill_details = SkillsSerializer(read_only=True, source="skill")
     vacancy = PrimaryKeyRelatedField(queryset=Vacancy.objects.all(), write_only=True)
     skill = PrimaryKeyRelatedField(queryset=Skills.objects.all(), write_only=True)
     class Meta:
@@ -95,14 +95,6 @@ class ShortVacancySerializer(ModelSerializer):
     class Meta:
         model = Vacancy
         fields = ["pk", "title", "visible", "hr"]
-
-
-class FullVacancySerializer(ModelSerializer):  # TODO
-    get_requirements = None
-    get_skills = None
-    class Meta:
-        model = Vacancy
-        fields = ["title", "description", "visible", "get_requirements", "get_skills"]
 
 
 class HRExtrasSerializer(ModelSerializer):
