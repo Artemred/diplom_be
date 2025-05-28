@@ -407,11 +407,11 @@ class OtherViewsTestCase(TransactionTestCase):
         res = self.client.get("/api/v1/requirements/list/Worker/")
         self.assertGreaterEqual(res.json().__len__(), 2)
         for i in res.json():
-            self.assertEqual(i["requirement_type"]["name"], "Worker")
+            self.assertEqual(i["requirement_type"]["name"], "Both")
         res = self.client.get("/api/v1/requirements/list/Vacancy/")
         self.assertGreaterEqual(res.json().__len__(), 2)
         for i in res.json():
-            self.assertEqual(i["requirement_type"]["name"], "Vacancy")  # testing filtering by type
+            self.assertEqual(i["requirement_type"]["name"], "Both")  # testing filtering by type
         
         res = self.client.get("/api/v1/requirements/list/Worker/sal")  # testing filtering by name part
         self.assertEqual(res.json()[0]["name"], "Salary")

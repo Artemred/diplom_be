@@ -7,6 +7,7 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_201_CREATED, HTTP_2
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from .serializers import OwnProfileSeriaizer, OtherProfileSeriaizer, WorkerExtrasSerializer, HRExtrasSerializer, FullVacancySerializer, ShortVacancySerializer, RequirementWorkersSerializer, VacancyRequirementsSerializer, SkillsWorkersSerializer, VacancySkillsSerializer, RequirementsSerializer, SkillsSerializer, RequirementOptionsSerializer, FullVacancySerializer, WhoamiProfileSerializer
 from .filters import VacanciesFilter
+from django.db.models import Q
 
 
 class Register(APIView):
@@ -243,9 +244,9 @@ class VacancySkillsAPIView(VacancyRequirementsAPIView):
     model_class = vacancy_skills
 
 
-class RequirementsListAPIView(APIView):
+class RequirementsListAPIView(APIView):  # TODO group or both
     def get(self, request, group, part=""):
-        data = Requirements.objects.filter(requirement_type__name=group)
+        data = Requirements.objects.filter(Q(requirement_type__name=group) | Q(requirement_type__name="Both"))
         if part:
             data = data.filter(name__icontains=part)
         serializer = RequirementsSerializer(data, many=True)

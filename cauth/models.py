@@ -30,16 +30,18 @@ class RequirementTypesManager(models.Manager):
     def generate(self):
         self.create(name="Worker")
         self.create(name="Vacancy")
+        self.create(name="Both")
 
 
 class RequirementsManager(models.Manager):
     def generate(self):
         worker_type = RequirementTypes.objects.get(name="Worker")
         vacancy_type = RequirementTypes.objects.get(name="Vacancy")
-        self.create(name="Working day", requirement_type=worker_type, multiple_answers=True)
-        self.create(name="Salary", requirement_type=worker_type, multiple_answers=True)
-        self.create(name="Education", requirement_type=vacancy_type, multiple_answers=False)
-        self.create(name="City", requirement_type=vacancy_type, multiple_answers=False)
+        both_type = RequirementTypes.objects.get(name="Both")
+        self.create(name="Working day", requirement_type=both_type, multiple_answers=True)
+        self.create(name="Salary", requirement_type=both_type, multiple_answers=True)
+        self.create(name="Education", requirement_type=both_type, multiple_answers=False)
+        self.create(name="City", requirement_type=both_type, multiple_answers=False)
 
 
 class RequirementOptionsManager(models.Manager):
@@ -297,6 +299,9 @@ class Requirements(models.Model):  # TODO merge same requirements
 
     def get_options(self):
         return RequirementOptions.objects.filter(requirement=self)
+    
+    def __str__(self):
+        return self.name
 
 
 class requirement_workers(models.Model):
