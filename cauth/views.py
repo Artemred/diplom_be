@@ -166,6 +166,16 @@ class VacancyListAPIView(APIView):
         return Response(serializer.data)
 
 
+class OwnVacanciesAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        qs = Vacancy.objects.filter(hr=request.user.get_extras_for_role("HR"))
+        serializer = ShortVacancySerializer(qs, many=True)
+        return Response(serializer.data)
+
+
 class WorkerRequirementsAPIVIew(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]

@@ -136,6 +136,29 @@ class User(AbstractUser):
         mw_instance = self.__get_mw_for_role(role)
         mw_instance.delete()
     
+    def get_related_extras(self):
+        res = {}
+        try:
+            w = self.related_workers
+            res["Worker"] = w.pk
+        except:
+            pass
+        try:
+            h = self.related_hrs
+            res["HR"] = h.pk
+        except:
+            pass
+        return res
+
+
+class SavedUsers(models.Model):
+    owner = models.ForeignKey(to="User", on_delete=models.CASCADE, related_name="related_saved_users")
+    saved = models.ForeignKey(to="User", on_delete=models.CASCADE, related_name="related_saved_by")
+    description = models.CharField(max_length=2048)
+
+    def __str__(self):
+        return f"{self.owner} saved {self.saved}"
+
 
 class Role(models.Model):
     name = models.CharField(max_length=32)
@@ -481,3 +504,11 @@ class vacancy_responses(models.Model):  # TODO signal or manager override to set
     vacancy = models.ForeignKey(to="Vacancy", on_delete=models.CASCADE, related_name="related_responses")
     creation_date = models.DateTimeField(auto_now_add=True)
     status = models.ForeignKey(to="VacancyResponseStatuses", on_delete=models.CASCADE, related_name="related_responses")
+
+
+class SavedVacancies(models.Model):
+    owner = models.ForeignKey(to="WorkerExtras", on_delete=models.CASCADE, related_name="related_saved_vacancies")
+    vacancy = models.ForeignKey(to="Vacancy", on_delete=models.CASCADE, related_name="related_saved_by")
+
+    def __str__(self):
+        return f"{self.owner} saved {self.vacancy}"

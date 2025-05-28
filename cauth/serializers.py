@@ -77,7 +77,7 @@ class VacancySkillsSerializer(ModelSerializer):
     skill = PrimaryKeyRelatedField(queryset=Skills.objects.all(), write_only=True)
     class Meta:
         model = vacancy_skills
-        fields = ["skill", "experience_duration", "experience_level", "description", "vacancy", "skill_details"]
+        fields = ["pk", "skill", "experience_duration", "experience_level", "description", "vacancy", "skill_details"]
 
 
 class VacancyRequirementsSerializer(ModelSerializer):
@@ -88,7 +88,7 @@ class VacancyRequirementsSerializer(ModelSerializer):
     vacancy = PrimaryKeyRelatedField(queryset=Vacancy.objects.all(), write_only=True)
     class Meta:
         model = vacancy_requirements
-        fields = ["requirement", "custom_answer", "multiple_options", "vacancy", "multiple_options_details", "requirement_details"]
+        fields = ["pk", "requirement", "custom_answer", "multiple_options", "vacancy", "multiple_options_details", "requirement_details"]
 
 #-----------------------------------hr-----------------------------------
 class ShortVacancySerializer(ModelSerializer):
@@ -109,7 +109,7 @@ class OwnProfileSeriaizer(ModelSerializer):
     roles = RoleSerializer(many=True)
     class Meta:
         model = User
-        fields = ["pk", "username", "full_name", "email", "phone", "photo", "description", "roles"]
+        fields = ["pk", "username", "full_name", "email", "phone", "photo", "description", "roles", "get_related_extras"]
 
 
 class OtherProfileSeriaizer(ModelSerializer):
