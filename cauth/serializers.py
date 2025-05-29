@@ -105,6 +105,21 @@ class VacancyRequirementsSerializer(ModelSerializer):
     class Meta:
         model = vacancy_requirements
         fields = ["pk", "requirement", "custom_answer", "multiple_options", "vacancy", "multiple_options_details", "requirement_details"]
+        
+    def create(self, validated_data):
+        try:
+            existing_instance = self.Meta.model.objects.prefetch_related("multiple_options").get(requirement=validated_data["requirement"], vacancy=validated_data["vacancy"])
+            current_options = list(existing_instance.multiple_options.all())
+            new_options = list(validated_data["multiple_options"])
+            combined_options = current_options + [opt for opt in new_options if opt not in current_options]
+            existing_instance.multiple_options.set(combined_options)
+            return existing_instance
+        except self.Meta.model.DoesNotExist:
+            multiple_options = validated_data.pop('multiple_options', [])
+            instance = vacancy_requirements.objects.create(**validated_data)
+            if multiple_options:
+                instance.multiple_options.set(multiple_options)
+            return instance
 
 #-----------------------------------hr-----------------------------------
 class ShortVacancySerializer(ModelSerializer):
