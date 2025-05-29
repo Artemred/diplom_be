@@ -177,7 +177,7 @@ class OwnVacanciesAPIView(APIView):
         return Response(serializer.data)
 
 
-class WorkerRequirementsAPIVIew(APIView):
+class WorkerRequirementsAPIVIew(APIView):  # TODO post with similar requirement adds new option
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
