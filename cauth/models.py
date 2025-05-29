@@ -504,7 +504,7 @@ class VacancyQuickResponses(models.Model):
     vacancy = models.ForeignKey(to="Vacancy", on_delete=models.CASCADE, related_name="related_quick_responses")
 
 
-class vacancy_responses(models.Model):  # TODO signal or manager override to set status on creation
+class vacancy_responses(models.Model): 
     worker = models.ForeignKey(to="WorkerExtras", on_delete=models.CASCADE, related_name="related_responses")
     vacancy = models.ForeignKey(to="Vacancy", on_delete=models.CASCADE, related_name="related_responses")
     creation_date = models.DateTimeField(auto_now_add=True)

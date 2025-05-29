@@ -3,6 +3,7 @@ from .models import Role, User, WorkerExtras, HRExtras, users_roles, Requirement
 from django.db.utils import IntegrityError
 from rest_framework.authtoken.models import Token
 
+
 #testing aviability of data in db
 class UserTestCase(TransactionTestCase):  # transaction test case because general one cant close broken transaction
     def setUp(self):
@@ -391,6 +392,29 @@ class VacancyViewsTestCase(TransactionTestCase):
         r = self.client.post(f"/api/v1/vacancies/list/", {"requirements": [req2.pk], "options": [o2_2.pk]})  # 6h
         self.assertEqual(r.json().__len__(), 1)
 
+    def test_vacancy_response(self):
+        worker_user = User.objects.create(username="worker1")
+        worker_user.add_role("Worker")
+        worker_token = f"Token {Token.objects.get(user=worker_user).key}"
+        worker_extras = worker_user.get_extras_for_role("Worker")
+        self.client.post("/api/v1/vacancies/", {"title": "Test Vacancy", "description": "For testing responses"}, headers={"Authorization": self.token})
+        vacancy = Vacancy.objects.filter(title="Test Vacancy").first()
+        res = self.client.post(f"/api/v1/vacancies/responses/{vacancy.pk}", {}, headers={"Authorization": worker_token})
+        self.assertEqual(res.status_code, 200)  # successful response creation
+        self.assertEqual(vacancy_responses.objects.filter(vacancy=vacancy, worker=worker_extras).count(), 1)
+        res = self.client.get(f"/api/v1/vacancies/responses/{vacancy.pk}", headers={"Authorization": self.token})
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(len(res.json()), 1)  # should have one response
+        res = self.client.get("/api/v1/profile/responses/", headers={"Authorization": worker_token})
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(len(res.json()), 1)  # worker should have one response
+        res = self.client.post(f"/api/v1/vacancies/responses/{vacancy.pk}", {}, headers={"Authorization": worker_token})
+        self.assertEqual(res.status_code, 400)  # should fail as response already exists
+        res = self.client.delete(f"/api/v1/vacancies/responses/{vacancy.pk}", headers={"Authorization": worker_token})
+        self.assertEqual(res.status_code, 200)  # successful deletion
+        self.assertEqual(vacancy_responses.objects.filter(vacancy=vacancy, worker=worker_extras).count(), 0)
+        res = self.client.post(f"/api/v1/vacancies/responses/{vacancy.pk}", {}, headers={"Authorization": self.token})
+        self.assertEqual(res.status_code, 403)  # should be forbidden for HR
 
 class OtherViewsTestCase(TransactionTestCase):
     def setUp(self):

@@ -1,11 +1,10 @@
 from rest_framework.views import APIView
-from rest_framework.viewsets import ViewSet
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
-from .models import User, Role, WorkerExtras, HRExtras, Vacancy, requirement_workers, vacancy_requirements, skills_workers, vacancy_skills, Requirements, Skills, RequirementOptions
+from .models import User, Role, WorkerExtras, HRExtras, Vacancy, requirement_workers, vacancy_requirements, skills_workers, vacancy_skills, Requirements, Skills, RequirementOptions, vacancy_responses, VacancyResponseStatuses, vacancy_responses
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_201_CREATED, HTTP_200_OK, HTTP_403_FORBIDDEN
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
-from .serializers import OwnProfileSeriaizer, OtherProfileSeriaizer, WorkerExtrasSerializer, HRExtrasSerializer, FullVacancySerializer, ShortVacancySerializer, RequirementWorkersSerializer, VacancyRequirementsSerializer, SkillsWorkersSerializer, VacancySkillsSerializer, RequirementsSerializer, SkillsSerializer, RequirementOptionsSerializer, FullVacancySerializer, WhoamiProfileSerializer
+from .serializers import OwnProfileSeriaizer, OtherProfileSeriaizer, WorkerExtrasSerializer, HRExtrasSerializer, FullVacancySerializer, ShortVacancySerializer, RequirementWorkersSerializer, VacancyRequirementsSerializer, SkillsWorkersSerializer, VacancySkillsSerializer, RequirementsSerializer, SkillsSerializer, RequirementOptionsSerializer, FullVacancySerializer, WhoamiProfileSerializer, VacancyResponsesSerializer
 from .filters import VacanciesFilter
 from django.db.models import Q
 
@@ -283,4 +282,62 @@ class AddRoleAPIView(APIView):
         u = request.user
         u.add_role(request.data["role"])
         return Response({}, status=HTTP_200_OK)
+
+
+class VacancyResponsesAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):  # for vacancy
+        try:
+            vacancy = Vacancy.objects.prefetch_related("related_responses").get(pk=pk)
+        except Vacancy.DoesNotExist:
+            return Response({"error": "vacancy does not exists"}, status=HTTP_400_BAD_REQUEST)
+        serializer = VacancyResponsesSerializer(vacancy.related_responses, many=True)
+        return Response(serializer.data, status=HTTP_200_OK)
     
+    def post(self, request, pk):
+        try:
+            vacancy = Vacancy.objects.get(pk=pk)
+        except Vacancy.DoesNotExist:
+            return Response({"error": "vacancy does not exists"}, status=HTTP_400_BAD_REQUEST)
+        try:
+            worker = request.user.get_extras_for_role("Worker")
+        except:
+            return Response({"error": "Forbidden"}, status=HTTP_403_FORBIDDEN)
+        if vacancy_responses.objects.select_related("vacancy", "worker").filter(vacancy__pk=pk, worker__pk=request.user.get_extras_for_role("Worker").pk).exists():
+            return Response({"error": "response already exists"}, status=HTTP_400_BAD_REQUEST)
+        else:
+            vacancy_responses.objects.create(vacancy=vacancy, worker=worker, status=VacancyResponseStatuses.objects.get(name="Created"))
+            return Response({}, status=HTTP_200_OK)
+    
+    def delete(self, request, pk):
+        try:
+            response = vacancy_responses.objects.select_related("vacancy", "worker").get(vacancy__pk=pk, worker__pk=request.user.get_extras_for_role("Worker").pk)
+        except vacancy_responses.DoesNotExist:
+            return Response({"error": "response does not exists"}, status=HTTP_400_BAD_REQUEST)
+        response.delete()
+        return Response({}, status=HTTP_200_OK)
+    
+    def patch(self, request, pk):
+        try:
+            response = vacancy_responses.objects.select_related("vacancy", "worker").get(pk=pk)
+        except vacancy_responses.DoesNotExist:
+            return Response({"error": "response does not exists"}, status=HTTP_400_BAD_REQUEST)
+        response.status = VacancyResponseStatuses.objects.get(name=request.data["status"])
+        response.save()
+        return Response({}, status=HTTP_200_OK)
+
+
+class WorkerResponsesAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            worker = request.user.get_extras_for_role("Worker")
+        except:
+            return Response({"error": "Forbidden"}, status=HTTP_403_FORBIDDEN)
+        responses = worker.related_responses.all()
+        serializer = VacancyResponsesSerializer(responses, many=True)
+        return Response(serializer.data, status=HTTP_200_OK)

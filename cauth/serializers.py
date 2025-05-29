@@ -1,7 +1,7 @@
 from rest_framework.serializers import ModelSerializer
-from .models import User, Role, WorkerExtras, HRExtras, Requirements, RequirementTypes, RequirementOptions, Skills, requirement_workers, SkillTags, skills_workers
-from .models import Vacancy, vacancy_requirements, vacancy_multiple_options, vacancy_skills
-from rest_framework.serializers import PrimaryKeyRelatedField
+from .models import User, Role, WorkerExtras, HRExtras, Requirements, RequirementTypes, RequirementOptions, Skills, requirement_workers, SkillTags, skills_workers, VacancyResponseStatuses
+from .models import Vacancy, vacancy_requirements, vacancy_skills, vacancy_responses
+from rest_framework.serializers import PrimaryKeyRelatedField, SlugRelatedField
 
 #----------------------worker-----------------------------
 class SkillTagsSerializer(ModelSerializer):
@@ -163,3 +163,17 @@ class WhoamiProfileSerializer(ModelSerializer):
     class Meta:
         model = User
         fields = ["username", "pk"]
+
+
+class WorkerUserSerializer(ModelSerializer):
+    class Meta:
+        model = WorkerExtras
+        fields = ["pk", "user"]
+
+
+class VacancyResponsesSerializer(ModelSerializer):
+    status = SlugRelatedField(slug_field="name", queryset=VacancyResponseStatuses.objects.all())
+    worker = WorkerUserSerializer(read_only=True)
+    class Meta:
+        model = vacancy_responses
+        fields = ["pk", "worker", "vacancy", "creation_date", "status"]
