@@ -276,3 +276,11 @@ class WhoamiAPIView(APIView):
     def get(self, request):
         serializer = WhoamiProfileSerializer(request.user)
         return Response(serializer.data, status=HTTP_200_OK)
+
+
+class AddRoleAPIView(APIView):
+    def post(self, request):
+        u = request.user
+        u.add_role(request.data["role"])
+        return Response({}, status=HTTP_200_OK)
+    

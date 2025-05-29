@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework.authtoken.views import obtain_auth_token
-from .views import Register, OccupiedUsernames, ProfileView, ProfileExtrasAPIView, VacancyAPIView, WorkerRequirementsAPIVIew, VacancyRequirementsAPIView, WorkerSkillsAPIView, VacancySkillsAPIView, RequirementsListAPIView, SkillsListAPIView, RequirementsOptionsAPIView, VacancyListAPIView, VacancyCreationAPIView, WhoamiAPIView, OwnVacanciesAPIView
+from .views import Register, OccupiedUsernames, ProfileView, ProfileExtrasAPIView, VacancyAPIView, WorkerRequirementsAPIVIew, VacancyRequirementsAPIView, WorkerSkillsAPIView, VacancySkillsAPIView, RequirementsListAPIView, SkillsListAPIView, RequirementsOptionsAPIView, VacancyListAPIView, VacancyCreationAPIView, WhoamiAPIView, OwnVacanciesAPIView, AddRoleAPIView
 
 app_name = "cauth"
 
@@ -12,6 +12,7 @@ urlpatterns = [
     path("profile/", ProfileView.as_view()),
     path("profile/extras/<int:pk>/<str:extras>", ProfileExtrasAPIView.as_view()),
     path("profile/whoami", WhoamiAPIView.as_view()),
+    path("profile/add-role/", AddRoleAPIView.as_view()),  # post
 
     path("vacancies/<int:pk>", VacancyAPIView.as_view()),  # get(retrieve) patch delete
     path("vacancies/", VacancyCreationAPIView.as_view()),  # post
