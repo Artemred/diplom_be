@@ -13,4 +13,4 @@ class ChatSerializer(ModelSerializer):
     last_message = SlugRelatedField(slug_field="content", read_only=True)
     class Meta:
         model = Chat
-        fields = ["title", "chat_key", "last_message"]
+        fields = ["title", "chat_key", "last_message", "vacancy"]

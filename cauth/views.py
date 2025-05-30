@@ -7,6 +7,8 @@ from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnl
 from .serializers import OwnProfileSeriaizer, OtherProfileSeriaizer, WorkerExtrasSerializer, HRExtrasSerializer, FullVacancySerializer, ShortVacancySerializer, RequirementWorkersSerializer, VacancyRequirementsSerializer, SkillsWorkersSerializer, VacancySkillsSerializer, RequirementsSerializer, SkillsSerializer, RequirementOptionsSerializer, FullVacancySerializer, WhoamiProfileSerializer, VacancyResponsesSerializer
 from .filters import VacanciesFilter
 from django.db.models import Q
+from chat.models import Chat
+import uuid
 
 
 class Register(APIView):
@@ -298,7 +300,7 @@ class VacancyResponsesAPIView(APIView):
     
     def post(self, request, pk):
         try:
-            vacancy = Vacancy.objects.get(pk=pk)
+            vacancy = Vacancy.objects.select_related("hr", "hr__user").get(pk=pk)
         except Vacancy.DoesNotExist:
             return Response({"error": "vacancy does not exists"}, status=HTTP_400_BAD_REQUEST)
         try:
@@ -309,6 +311,8 @@ class VacancyResponsesAPIView(APIView):
             return Response({"error": "response already exists"}, status=HTTP_400_BAD_REQUEST)
         else:
             vacancy_responses.objects.create(vacancy=vacancy, worker=worker, status=VacancyResponseStatuses.objects.get(name="Created"))
+            if not Chat.objects.filter(user1=request.user, user2=vacancy.hr.user).exists():
+                Chat.objects.create(user1=request.user, user2=vacancy.hr.user, title="Vacancy " + vacancy.title, chat_key=str(uuid.uuid4()), vacancy=vacancy)
             return Response({}, status=HTTP_200_OK)
     
     def delete(self, request, pk):

@@ -11,7 +11,8 @@ class ChatsAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        chats = Chat.objects.filter(Q(user1=request.user)|Q(user2=request.user))
-        serializer = ChatSerializer(chats, many=True)
+    def get(self, request, key):
+        chat = Chat.objects.get(chat_key=key)
+        serializer = ChatSerializer(chat)
         return Response(serializer.data)
+        

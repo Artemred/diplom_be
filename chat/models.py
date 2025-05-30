@@ -8,6 +8,7 @@ class Chat(models.Model):
     user1 = models.ForeignKey(to=User, on_delete=models.CASCADE, related_name="related_chats1", null=True, blank=True)
     user2 = models.ForeignKey(to=User, on_delete=models.CASCADE, related_name="related_chats2", null=True, blank=True)
     chat_key = models.CharField(max_length=128, unique=True)
+    vacancy = models.ForeignKey(to="cauth.Vacancy", on_delete=models.CASCADE, related_name="related_chats", null=True, blank=True)
 
     def store_message(self, sender_pk: int, content:str):  # TODO sender not only pk
         sender = User.objects.get(pk=sender_pk)
