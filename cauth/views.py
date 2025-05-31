@@ -1,10 +1,10 @@
 from rest_framework.views import APIView
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
-from .models import User, Role, WorkerExtras, HRExtras, Vacancy, requirement_workers, vacancy_requirements, skills_workers, vacancy_skills, Requirements, Skills, RequirementOptions, vacancy_responses, VacancyResponseStatuses, vacancy_responses
+from .models import User, Role, WorkerExtras, HRExtras, Vacancy, requirement_workers, vacancy_requirements, skills_workers, vacancy_skills, Requirements, Skills, RequirementOptions, vacancy_responses, VacancyResponseStatuses, vacancy_responses, SavedVacancies, SavedUsers
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_201_CREATED, HTTP_200_OK, HTTP_403_FORBIDDEN
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
-from .serializers import OwnProfileSeriaizer, OtherProfileSeriaizer, WorkerExtrasSerializer, HRExtrasSerializer, FullVacancySerializer, ShortVacancySerializer, RequirementWorkersSerializer, VacancyRequirementsSerializer, SkillsWorkersSerializer, VacancySkillsSerializer, RequirementsSerializer, SkillsSerializer, RequirementOptionsSerializer, FullVacancySerializer, WhoamiProfileSerializer, VacancyResponsesSerializer
+from .serializers import OwnProfileSeriaizer, OtherProfileSeriaizer, WorkerExtrasSerializer, HRExtrasSerializer, FullVacancySerializer, ShortVacancySerializer, RequirementWorkersSerializer, VacancyRequirementsSerializer, SkillsWorkersSerializer, VacancySkillsSerializer, RequirementsSerializer, SkillsSerializer, RequirementOptionsSerializer, FullVacancySerializer, WhoamiProfileSerializer, VacancyResponsesSerializer, SavedVacanciesSerializer, SavedUsersSerializer, SavedVacanciesSerializer
 from .filters import VacanciesFilter
 from django.db.models import Q
 from chat.models import Chat
@@ -345,3 +345,80 @@ class WorkerResponsesAPIView(APIView):
         responses = worker.related_responses.all()
         serializer = VacancyResponsesSerializer(responses, many=True)
         return Response(serializer.data, status=HTTP_200_OK)
+
+
+class SavedVacanciesListAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        try:
+            worker = request.user.get_extras_for_role("Worker")
+        except:
+            return Response({"error": "Forbidden"}, status=HTTP_403_FORBIDDEN)
+        saved = SavedVacancies.objects.filter(owner=worker)
+        serializer = SavedVacanciesSerializer(saved, many=True)
+        return Response(serializer.data, status=HTTP_200_OK)
+
+    def post(self, request):
+        try:
+            worker = request.user.get_extras_for_role("Worker")
+        except:
+            return Response({"error": "Forbidden"}, status=HTTP_403_FORBIDDEN)
+        try:
+            vacancy = Vacancy.objects.get(pk=request.data["vacancy"])
+        except Vacancy.DoesNotExist:
+            return Response({"error": "vacancy does not exists"}, status=HTTP_400_BAD_REQUEST)
+        if SavedVacancies.objects.filter(owner=worker, vacancy=vacancy).exists():
+            return Response({"error": "vacancy already saved"}, status=HTTP_400_BAD_REQUEST)
+        SavedVacancies.objects.create(owner=worker, vacancy=vacancy)
+        return Response({}, status=HTTP_201_CREATED)
+
+class SavedVacanciesDeleteAPIView(APIView):
+    def delete(self, request, pk):
+        try:
+            worker = request.user.get_extras_for_role("Worker")
+        except:
+            return Response({"error": "Forbidden"}, status=HTTP_403_FORBIDDEN)
+        try:
+            saved = SavedVacancies.objects.get(pk=pk)
+        except SavedVacancies.DoesNotExist:
+            return Response({"error": "Saved vacancy does not exists"}, status=HTTP_400_BAD_REQUEST)
+        if saved.owner != worker:
+            return Response({"error": "Forbidden"}, status=HTTP_403_FORBIDDEN)
+        saved.delete()
+        return Response({}, status=HTTP_200_OK)
+
+
+class SavedUsersListAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        saved = SavedUsers.objects.filter(owner=request.user)
+        serializer = SavedUsersSerializer(saved, many=True)
+        return Response(serializer.data, status=HTTP_200_OK)
+
+    def post(self, request):
+        try:
+            user = User.objects.get(pk=request.data["user"])
+        except User.DoesNotExist:
+            return Response({"error": "User does not exists"}, status=HTTP_400_BAD_REQUEST)
+        if SavedUsers.objects.filter(owner=request.user, saved=user).exists():
+            return Response({"error": "User already saved"}, status=HTTP_400_BAD_REQUEST)
+        SavedUsers.objects.create(owner=request.user, saved=user, description=request.data["description"])
+        return Response({}, status=HTTP_201_CREATED)
+
+class SavedUsersDeleteAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        try:
+            saved = SavedUsers.objects.get(pk=pk)
+        except SavedUsers.DoesNotExist:
+            return Response({"error": "Saved user does not exists"}, status=HTTP_400_BAD_REQUEST)
+        if saved.owner != request.user:
+            return Response({"error": "Forbidden"}, status=HTTP_403_FORBIDDEN)
+        saved.delete()
+        return Response({}, status=HTTP_200_OK)

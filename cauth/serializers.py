@@ -1,6 +1,6 @@
 from rest_framework.serializers import ModelSerializer
 from .models import User, Role, WorkerExtras, HRExtras, Requirements, RequirementTypes, RequirementOptions, Skills, requirement_workers, SkillTags, skills_workers, VacancyResponseStatuses
-from .models import Vacancy, vacancy_requirements, vacancy_skills, vacancy_responses
+from .models import Vacancy, vacancy_requirements, vacancy_skills, vacancy_responses, SavedVacancies, SavedUsers
 from rest_framework.serializers import PrimaryKeyRelatedField, SlugRelatedField
 
 #----------------------worker-----------------------------
@@ -177,3 +177,17 @@ class VacancyResponsesSerializer(ModelSerializer):
     class Meta:
         model = vacancy_responses
         fields = ["pk", "worker", "vacancy", "creation_date", "status"]
+
+
+class SavedVacanciesSerializer(ModelSerializer):
+    class Meta:
+        model = SavedVacancies
+        fields = ["pk", "vacancy", "owner"]  # owner=worker
+
+
+class SavedUsersSerializer(ModelSerializer):
+    class Meta:
+        model = SavedUsers
+        fields = ["pk", "owner", "saved", "description"]
+    
+    
