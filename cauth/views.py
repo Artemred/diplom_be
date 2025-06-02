@@ -374,6 +374,7 @@ class SavedVacanciesListAPIView(APIView):
         SavedVacancies.objects.create(owner=worker, vacancy=vacancy)
         return Response({}, status=HTTP_201_CREATED)
 
+
 class SavedVacanciesDeleteAPIView(APIView):
     def delete(self, request, pk):
         try:
@@ -408,6 +409,7 @@ class SavedUsersListAPIView(APIView):
             return Response({"error": "User already saved"}, status=HTTP_400_BAD_REQUEST)
         SavedUsers.objects.create(owner=request.user, saved=user, description=request.data["description"])
         return Response({}, status=HTTP_201_CREATED)
+
 
 class SavedUsersDeleteAPIView(APIView):
     authentication_classes = [TokenAuthentication]

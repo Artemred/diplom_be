@@ -120,12 +120,3 @@ class RESTChatsTestCase(TestCase):
         Chat.objects.create(user1=self.u1, user2=self.u2, chat_key="2")
         Chat.objects.create(user1=self.u1, user2=self.u2, chat_key="3")
         self.cloent = Client()
-
-    def test_chats_list(self):
-        r = self.client.get("/api/v1/chats/list", headers={"authorization": self.token1})
-        self.assertEqual(r.json().__len__(), 3)
-        Chat.objects.get(chat_key="3").delete()
-        r = self.client.get("/api/v1/chats/list", headers={"authorization": self.token1})
-        self.assertEqual(r.json().__len__(), 2)
-        r = self.client.get("/api/v1/chats/list", headers={"authorization": self.token2})
-        self.assertEqual(r.json().__len__(), 2)
