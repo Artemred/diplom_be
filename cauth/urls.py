@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework.authtoken.views import obtain_auth_token
-from .views import Register, OccupiedUsernames, ProfileView, ProfileExtrasAPIView, VacancyAPIView, WorkerRequirementsAPIVIew, VacancyRequirementsAPIView, WorkerSkillsAPIView, VacancySkillsAPIView, RequirementsListAPIView, SkillsListAPIView, RequirementsOptionsAPIView, VacancyListAPIView, VacancyCreationAPIView, WhoamiAPIView, OwnVacanciesAPIView, AddRoleAPIView, WorkerResponsesAPIView, VacancyResponsesAPIView, SavedUsersListAPIView, SavedUsersDeleteAPIView, SavedVacanciesListAPIView, SavedVacanciesDeleteAPIView
+from .views import Register, OccupiedUsernames, ProfileView, ProfileExtrasAPIView, VacancyAPIView, WorkerRequirementsAPIVIew, VacancyRequirementsAPIView, WorkerSkillsAPIView, VacancySkillsAPIView, RequirementsListAPIView, SkillsListAPIView, RequirementsOptionsAPIView, VacancyListAPIView, VacancyCreationAPIView, WhoamiAPIView, OwnVacanciesAPIView, AddRoleAPIView, WorkerResponsesAPIView, VacancyResponsesAPIView, SavedUsersListAPIView, SavedUsersDeleteAPIView, SavedVacanciesListAPIView, SavedVacanciesDeleteAPIView, WorkerListAPIView
 
 app_name = "cauth"
 
@@ -24,6 +24,8 @@ urlpatterns = [
     path("vacancies/responses/<int:pk>", VacancyResponsesAPIView.as_view()),  # get post from vacancy
     path("vacancies/saved-vacancies/", SavedVacanciesListAPIView.as_view()),  # get post
     path("vacancies/saved-vacancies/<int:pk>", SavedVacanciesDeleteAPIView.as_view()),  # delete
+
+    path("workers/list/", WorkerListAPIView.as_view()),  # post(list) [too much filtering parameters]
 
     path("requirements/worker/<int:pk>", WorkerRequirementsAPIVIew.as_view()),  # delete
     path("requirements/worker/", WorkerRequirementsAPIVIew.as_view()),  # post

@@ -4,8 +4,8 @@ from rest_framework.response import Response
 from .models import User, Role, WorkerExtras, HRExtras, Vacancy, requirement_workers, vacancy_requirements, skills_workers, vacancy_skills, Requirements, Skills, RequirementOptions, vacancy_responses, VacancyResponseStatuses, vacancy_responses, SavedVacancies, SavedUsers
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_201_CREATED, HTTP_200_OK, HTTP_403_FORBIDDEN
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
-from .serializers import OwnProfileSeriaizer, OtherProfileSeriaizer, WorkerExtrasSerializer, HRExtrasSerializer, FullVacancySerializer, ShortVacancySerializer, RequirementWorkersSerializer, VacancyRequirementsSerializer, SkillsWorkersSerializer, VacancySkillsSerializer, RequirementsSerializer, SkillsSerializer, RequirementOptionsSerializer, FullVacancySerializer, WhoamiProfileSerializer, VacancyResponsesSerializer, SavedVacanciesSerializer, SavedUsersSerializer, SavedVacanciesSerializer
-from .filters import VacanciesFilter
+from .serializers import OwnProfileSeriaizer, OtherProfileSeriaizer, WorkerExtrasSerializer, HRExtrasSerializer, FullVacancySerializer, ShortVacancySerializer, RequirementWorkersSerializer, VacancyRequirementsSerializer, SkillsWorkersSerializer, VacancySkillsSerializer, RequirementsSerializer, SkillsSerializer, RequirementOptionsSerializer, FullVacancySerializer, WhoamiProfileSerializer, VacancyResponsesSerializer, SavedVacanciesSerializer, SavedUsersSerializer, SavedVacanciesSerializer, ShortWorkerSerializer
+from .filters import VacanciesFilter, WorkerExtrasFilter
 from django.db.models import Q
 from chat.models import Chat
 import uuid
@@ -165,6 +165,18 @@ class VacancyListAPIView(APIView):
         else:
             return Response([], status=HTTP_400_BAD_REQUEST)
         serializer = ShortVacancySerializer(filtered_queryset, many=True)
+        return Response(serializer.data)
+
+
+class WorkerListAPIView(APIView):
+    def post(self, request):
+        qs = WorkerExtras.objects.all().select_related("user").prefetch_related("related_rw").prefetch_related("related_sw")
+        filterset = WorkerExtrasFilter(request.data, queryset=qs)
+        if filterset.is_valid():
+            filtered_queryset = filterset.qs
+        else:
+            return Response([], status=HTTP_400_BAD_REQUEST)
+        serializer = ShortWorkerSerializer(filtered_queryset, many=True)
         return Response(serializer.data)
 
 

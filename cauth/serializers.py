@@ -86,6 +86,18 @@ class WorkerExtrasSerializer(ModelSerializer):
         model = WorkerExtras
         fields = ["get_requirements", "get_skills"]
 
+
+class ShortUserSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["pk", "username", "full_name", "photo"]
+
+
+class ShortWorkerSerializer(ModelSerializer):
+    user = ShortUserSerializer()
+    class Meta:
+        model = WorkerExtras
+        fields = ["pk", "user"]
 #-------------------------------vacancy------------------------------
 class VacancySkillsSerializer(ModelSerializer):
     skill_details = SkillsSerializer(read_only=True, source="skill")
