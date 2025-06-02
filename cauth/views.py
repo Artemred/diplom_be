@@ -436,3 +436,29 @@ class SavedUsersDeleteAPIView(APIView):
             return Response({"error": "Forbidden"}, status=HTTP_403_FORBIDDEN)
         saved.delete()
         return Response({}, status=HTTP_200_OK)
+
+
+class CreateChatAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            user = User.objects.get(pk=request.data["user"])
+        except User.DoesNotExist:
+            return Response({"error": "User does not exists"}, status=HTTP_400_BAD_REQUEST)
+        try:
+            vacancy = Vacancy.objects.get(pk=request.data["vacancy"])
+        except Vacancy.DoesNotExist:
+            return Response({"error": "Vacancy does not exists"}, status=HTTP_400_BAD_REQUEST)
+        
+        if vacancy_responses.objects.filter(vacancy=vacancy, worker=user.get_extras_for_role("Worker")).exists():
+            return Response({"error": "Response already exists", "chat_key": Chat.objects.get(Q(user1=request.user, user2=user) | Q(user1=user, user2=request.user)).chat_key}, status=HTTP_400_BAD_REQUEST)
+        else:
+            vacancy_responses.objects.create(vacancy=vacancy, worker=user.get_extras_for_role("Worker"), status=VacancyResponseStatuses.objects.get(name="Created"))
+            if not Chat.objects.filter(user1=request.user, user2=user).exists():
+                chat = Chat.objects.create(user1=request.user, user2=user, title="Vacancy " + vacancy.title, chat_key=str(uuid.uuid4()), vacancy=vacancy)
+                return Response({"chat_key": chat.chat_key}, status=HTTP_201_CREATED)
+            else:
+                return Response({"chat_key": Chat.objects.filter(user1=request.user, user2=user).first().chat_key}, status=HTTP_201_CREATED)
+    

@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework.authtoken.views import obtain_auth_token
-from .views import Register, OccupiedUsernames, ProfileView, ProfileExtrasAPIView, VacancyAPIView, WorkerRequirementsAPIVIew, VacancyRequirementsAPIView, WorkerSkillsAPIView, VacancySkillsAPIView, RequirementsListAPIView, SkillsListAPIView, RequirementsOptionsAPIView, VacancyListAPIView, VacancyCreationAPIView, WhoamiAPIView, OwnVacanciesAPIView, AddRoleAPIView, WorkerResponsesAPIView, VacancyResponsesAPIView, SavedUsersListAPIView, SavedUsersDeleteAPIView, SavedVacanciesListAPIView, SavedVacanciesDeleteAPIView, WorkerListAPIView
+from .views import Register, OccupiedUsernames, ProfileView, ProfileExtrasAPIView, VacancyAPIView, WorkerRequirementsAPIVIew, VacancyRequirementsAPIView, WorkerSkillsAPIView, VacancySkillsAPIView, RequirementsListAPIView, SkillsListAPIView, RequirementsOptionsAPIView, VacancyListAPIView, VacancyCreationAPIView, WhoamiAPIView, OwnVacanciesAPIView, AddRoleAPIView, WorkerResponsesAPIView, VacancyResponsesAPIView, SavedUsersListAPIView, SavedUsersDeleteAPIView, SavedVacanciesListAPIView, SavedVacanciesDeleteAPIView, WorkerListAPIView, CreateChatAPIView
 
 app_name = "cauth"
 
@@ -39,5 +39,6 @@ urlpatterns = [
     path("requirements/list/<str:group>/", RequirementsListAPIView.as_view()),  # no filtering
     path("requirements/options/<str:requirement>", RequirementsOptionsAPIView.as_view()),
     path("skills/list/<str:part>", SkillsListAPIView.as_view()),  # with filtr
-    path("skills/list/", SkillsListAPIView.as_view())  # no filtering
+    path("skills/list/", SkillsListAPIView.as_view()), # no filtering
+    path("chat/create/", CreateChatAPIView.as_view()),
 ]
