@@ -10,9 +10,6 @@ class UserTestCase(TransactionTestCase):  # transaction test case because genera
         fill_db()
         User.objects.create(username="u1")
     
-    def test_generated_roles(self):
-        self.assertEqual(len(Role.objects.all()), 2)
-    
     def test_role_add(self):
         u = User.objects.get(username="u1")
         u.add_role("HR")

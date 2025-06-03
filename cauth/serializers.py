@@ -1,6 +1,6 @@
 from rest_framework.serializers import ModelSerializer
 from .models import User, Role, WorkerExtras, HRExtras, Requirements, RequirementTypes, RequirementOptions, Skills, requirement_workers, SkillTags, skills_workers, VacancyResponseStatuses
-from .models import Vacancy, vacancy_requirements, vacancy_skills, vacancy_responses, SavedVacancies, SavedUsers
+from .models import Vacancy, vacancy_requirements, vacancy_skills, vacancy_responses, SavedVacancies, SavedUsers, Complains, ComplainReasons
 from rest_framework.serializers import PrimaryKeyRelatedField, SlugRelatedField
 
 #----------------------worker-----------------------------
@@ -202,4 +202,24 @@ class SavedUsersSerializer(ModelSerializer):
         model = SavedUsers
         fields = ["pk", "owner", "saved", "description"]
     
-    
+
+class ComplainReasonsSerializer(ModelSerializer):
+    class Meta:
+        model = ComplainReasons
+        fields = ["id", "name", "priority"]
+
+
+class ComplainSerializer(ModelSerializer):
+    complier = SlugRelatedField(slug_field="username", read_only=True)
+    complied = SlugRelatedField(slug_field="username", queryset=User.objects.all())
+    reason = SlugRelatedField(slug_field="name", queryset=ComplainReasons.objects.all())
+
+    class Meta:
+        model = Complains
+        fields = ["pk", "complier", "complied", "reason", "description", "target_type", "target_pk", "screenshot", "status"]
+
+
+class ShortComplainSerializer(ModelSerializer):
+    class Meta:
+        model = Complains
+        fields = ["pk", "description", "status"]

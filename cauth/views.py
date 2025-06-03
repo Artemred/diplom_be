@@ -1,10 +1,10 @@
 from rest_framework.views import APIView
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
-from .models import User, Role, WorkerExtras, HRExtras, Vacancy, requirement_workers, vacancy_requirements, skills_workers, vacancy_skills, Requirements, Skills, RequirementOptions, vacancy_responses, VacancyResponseStatuses, vacancy_responses, SavedVacancies, SavedUsers
+from .models import User, Role, WorkerExtras, HRExtras, Vacancy, requirement_workers, vacancy_requirements, skills_workers, vacancy_skills, Requirements, Skills, RequirementOptions, vacancy_responses, VacancyResponseStatuses, vacancy_responses, SavedVacancies, SavedUsers, Complains, ComplainReasons
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_201_CREATED, HTTP_200_OK, HTTP_403_FORBIDDEN
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
-from .serializers import OwnProfileSeriaizer, OtherProfileSeriaizer, WorkerExtrasSerializer, HRExtrasSerializer, FullVacancySerializer, ShortVacancySerializer, RequirementWorkersSerializer, VacancyRequirementsSerializer, SkillsWorkersSerializer, VacancySkillsSerializer, RequirementsSerializer, SkillsSerializer, RequirementOptionsSerializer, FullVacancySerializer, WhoamiProfileSerializer, VacancyResponsesSerializer, SavedVacanciesSerializer, SavedUsersSerializer, SavedVacanciesSerializer, ShortWorkerSerializer
+from .serializers import OwnProfileSeriaizer, OtherProfileSeriaizer, WorkerExtrasSerializer, HRExtrasSerializer, FullVacancySerializer, ShortVacancySerializer, RequirementWorkersSerializer, VacancyRequirementsSerializer, SkillsWorkersSerializer, VacancySkillsSerializer, RequirementsSerializer, SkillsSerializer, RequirementOptionsSerializer, FullVacancySerializer, WhoamiProfileSerializer, VacancyResponsesSerializer, SavedVacanciesSerializer, SavedUsersSerializer, SavedVacanciesSerializer, ShortWorkerSerializer, ShortComplainSerializer, ComplainSerializer, ComplainReasonsSerializer
 from .filters import VacanciesFilter, WorkerExtrasFilter
 from django.db.models import Q
 from chat.models import Chat
@@ -461,4 +461,77 @@ class CreateChatAPIView(APIView):
                 return Response({"chat_key": chat.chat_key}, status=HTTP_201_CREATED)
             else:
                 return Response({"chat_key": Chat.objects.filter(user1=request.user, user2=user).first().chat_key}, status=HTTP_201_CREATED)
+
+
+class ComplainReasonsAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        reasons = ComplainReasons.objects.all().order_by('priority')
+        serializer = ComplainReasonsSerializer(reasons, many=True)
+        return Response(serializer.data, status=HTTP_200_OK)
+
+
+class ComplainAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if "Moderator" in request.user.roles.values_list("name", flat=True):
+            complains = Complains.objects.all()
+            serializer = ShortComplainSerializer(complains, many=True)
+            return Response(serializer.data, status=HTTP_200_OK)
+        else:
+            return Response({"error": "Forbidden"}, status=HTTP_403_FORBIDDEN)
+
+    def post(self, request):
+        try:
+            if request.data["target_type"] == "Profile":
+                user = User.objects.get(pk=request.data["target_pk"])
+            elif request.data["target_type"] == "Vacancy":
+                user = Vacancy.objects.get(pk=request.data["target_pk"]).hr.get_related_user()
+        except User.DoesNotExist:
+            return Response({"error": "User does not exists"}, status=HTTP_400_BAD_REQUEST)
+        try:
+            reason = ComplainReasons.objects.get(pk=request.data["reason"])
+        except ComplainReasons.DoesNotExist:
+            return Response({"error": "Reason does not exists"}, status=HTTP_400_BAD_REQUEST)
+        Complains.objects.create(complier=request.user, complied=user, reason=reason, description=request.data["description"], target_type=request.data["target_type"], target_pk=request.data["target_pk"])
+        return Response({}, status=HTTP_201_CREATED)
+
+
+class ComplainDetailsAPIView(APIView):
+    def get(self, request, pk):
+        if "Moderator" not in request.user.roles.values_list("name", flat=True):
+            return Response({"error": "Forbidden"}, status=HTTP_403_FORBIDDEN)
+        try:
+            complain = Complains.objects.get(pk=pk)
+        except Complains.DoesNotExist:
+            return Response({"error": "Complain does not exists"}, status=HTTP_400_BAD_REQUEST)
+        serializer = ComplainSerializer(complain)
+        return Response(serializer.data, status=HTTP_200_OK)
+    
+    def delete(self, request, pk):
+        if "Moderator" not in request.user.roles.values_list("name", flat=True):
+            return Response({"error": "Forbidden"}, status=HTTP_403_FORBIDDEN)
+        try:
+            complain = Complains.objects.get(pk=pk)
+        except Complains.DoesNotExist:
+            return Response({"error": "Complain does not exists"}, status=HTTP_400_BAD_REQUEST)
+        complain.delete()
+        return Response({}, status=HTTP_200_OK)
+    
+    def patch(self, request, pk):
+        if "Moderator" not in request.user.roles.values_list("name", flat=True):
+            return Response({"error": "Forbidden"}, status=HTTP_403_FORBIDDEN)
+        try:
+            complain = Complains.objects.get(pk=pk)
+        except Complains.DoesNotExist:
+            return Response({"error": "Complain does not exists"}, status=HTTP_400_BAD_REQUEST)
+        serializer = ComplainSerializer(complain, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=HTTP_200_OK)
+        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
     

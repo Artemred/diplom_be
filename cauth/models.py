@@ -24,6 +24,7 @@ class RoleManager(models.Manager):
     def generate(self):
         self.create(name="HR", extras_content_type=ContentType.objects.get_for_model(HRExtras))
         self.create(name="Worker", extras_content_type=ContentType.objects.get_for_model(WorkerExtras))
+        self.create(name="Moderator")
 
 
 class RequirementTypesManager(models.Manager):
@@ -114,7 +115,9 @@ class User(AbstractUser):
     def add_role(self, name: str):
         primary_role = Role.objects.get(name=name)
         users_roles.objects.create(user=self, role=primary_role)
-        return primary_role.extras_content_type.model_class().objects.create(user=self)
+        if primary_role.extras_content_type:
+            return primary_role.extras_content_type.model_class().objects.create(user=self)
+        return None
 
     
     def __get_mw_for_role(self, role: Union[str, "Role"]):
@@ -150,6 +153,8 @@ class User(AbstractUser):
             res["HR"] = h.pk
         except:
             pass
+        if "Moderator" in self.roles.values_list("name", flat=True):
+            res["Moderator"] = 1
         return res
 
 
@@ -164,7 +169,7 @@ class SavedUsers(models.Model):
 
 class Role(models.Model):
     name = models.CharField(max_length=32)
-    extras_content_type = models.ForeignKey(to=ContentType, related_name="ct_roles", on_delete=models.CASCADE)
+    extras_content_type = models.ForeignKey(to=ContentType, related_name="ct_roles", on_delete=models.CASCADE, null=True, blank=True)
 
     objects = RoleManager()
 
@@ -348,6 +353,18 @@ class Complains(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     description = models.TextField(null=True, blank=True)
     reason = models.ForeignKey(to="ComplainReasons", on_delete=models.CASCADE)
+    target_type = models.CharField(max_length=32, null=True, blank=True, choices=[
+        ("Profile", "Profile"),
+        ("Vacancy", "Vacancy"),
+    ])
+    target_pk = models.PositiveIntegerField(null=True, blank=True)
+    screenshot = models.ImageField(upload_to="complains", null=True, blank=True)
+    status = models.CharField(max_length=32, default="Pending", choices=[
+        ("Pending", "Pending"),
+        ("Resolved", "Resolved"),
+        ("Closed", "Closed"),
+    ])
+
 
 #-------------------------skills--------------------------------
 class Skills(models.Model):
