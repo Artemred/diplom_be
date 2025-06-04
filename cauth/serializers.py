@@ -105,7 +105,7 @@ class VacancySkillsSerializer(ModelSerializer):
     skill = PrimaryKeyRelatedField(queryset=Skills.objects.all(), write_only=True)
     class Meta:
         model = vacancy_skills
-        fields = ["pk", "skill", "experience_duration", "experience_level", "description", "vacancy", "skill_details"]
+        fields = ["pk", "skill", "experience_duration", "experience_level", "description", "vacancy", "skill_details", "relevance"]
 
 
 class VacancyRequirementsSerializer(ModelSerializer):

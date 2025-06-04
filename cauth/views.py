@@ -9,6 +9,7 @@ from .filters import VacanciesFilter, WorkerExtrasFilter
 from django.db.models import Q
 from chat.models import Chat
 import uuid
+from collections import Counter
 
 
 class Register(APIView):
@@ -165,19 +166,64 @@ class VacancyListAPIView(APIView):
         else:
             return Response([], status=HTTP_400_BAD_REQUEST)
         serializer = ShortVacancySerializer(filtered_queryset, many=True)
-        return Response(serializer.data)
+        data = serializer.data
+        if request.data.get("worker", None):
+            worker = request.user.get_extras_for_role("Worker")
+            data = self.calculate_relevance(data, filtered_queryset, worker)
+        return Response(data)
+    
+    def calculate_relevance(self, data, queryset, worker):  # now here are vacancies in qs and worker sep
+        worker_skills = worker.related_sw.all()
+
+        for i, j in zip(data, queryset):
+            explain = {}
+            relevance = 0
+            vacancy_skills = j.related_vs.all()
+            relevance_count = dict(Counter(vacancy_skills.values_list("relevance", flat=True)))
+            relevance_sum = sum(relevance_count.keys())
+            wages = {i.skill_id:((100/relevance_sum)*i.relevance)/relevance_count[i.relevance] for i in vacancy_skills}
+            for skill in worker_skills:
+                if skill.skill_id in wages:
+                    relevance += wages[skill.skill_id]
+                    explain[skill.skill.name] = wages[skill.skill_id]
+            i["relevance"] = relevance
+            i["explain"] = explain
+        return data
 
 
 class WorkerListAPIView(APIView):
     def post(self, request):
-        qs = WorkerExtras.objects.all().select_related("user").prefetch_related("related_rw").prefetch_related("related_sw")
+        qs = WorkerExtras.objects.all().select_related("user").prefetch_related("related_rw").prefetch_related("related_sw", "related_sw__skill")
         filterset = WorkerExtrasFilter(request.data, queryset=qs)
         if filterset.is_valid():
             filtered_queryset = filterset.qs
         else:
             return Response([], status=HTTP_400_BAD_REQUEST)
         serializer = ShortWorkerSerializer(filtered_queryset, many=True)
-        return Response(serializer.data)
+        if request.data.get("vacancy", None):
+            vacancy = Vacancy.objects.prefetch_related("related_vs").get(pk=request.data["vacancy"])
+            data = self.calculate_relevance(serializer.data, filtered_queryset, vacancy)
+        else:
+            data = serializer.data
+        return Response(data)
+
+    def calculate_relevance(self, data, queryset, vacancy):
+        vacancy_skills = vacancy.related_vs.all()
+        relevance_count = dict(Counter(vacancy_skills.values_list("relevance", flat=True)))
+        relevance_sum = sum(relevance_count.keys())
+        wages = {i.skill_id:((100/relevance_sum)*i.relevance)/relevance_count[i.relevance] for i in vacancy_skills}
+        #print(wages)
+        for i, j in zip(data, queryset):
+            explain = {}
+            worker_skills = list(j.related_sw.all())
+            relevance = 0
+            for skill in worker_skills:
+                if skill.skill_id in wages:
+                    relevance += wages[skill.skill_id]
+                    explain[skill.skill.name] = wages[skill.skill_id]
+            i["relevance"] = relevance
+            i["explain"] = explain
+        return data
 
 
 class OwnVacanciesAPIView(APIView):

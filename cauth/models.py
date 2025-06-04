@@ -485,6 +485,7 @@ class vacancy_skills(models.Model):
         ("Middle", "Middle"),
         ("Senior", "Senior")
     ])
+    relevance = models.PositiveIntegerField(default=1)
     description = models.CharField(max_length=1024, null=True, blank=True)
 
 

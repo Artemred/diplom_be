@@ -291,6 +291,9 @@ class ExtrasViewsTestCase(TransactionTestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(self.user_extras.get_skills().count(), 0)
 
+    def test_worker_relevance(self):
+        res = self.client.post("/api/v1/workers/list/", {}, headers={"Authorization": self.token})
+        #print(res.json())
 
 class VacancyViewsTestCase(TransactionTestCase):
     def setUp(self):
