@@ -17,7 +17,10 @@ class UserManager(BaseUserManager):
         return u
 
     def create_superuser(self, **kwargs):
-        return self.create_user(**kwargs)
+        u = self.model(username = kwargs["username"], is_superuser=True, is_staff=True, is_active=True)
+        u.set_password(kwargs["password"])
+        u.save(using=self._db)
+        return u
 
 
 class RoleManager(models.Manager):
@@ -98,7 +101,7 @@ class VacancyResponseStatusManager(models.Manager):
 class User(AbstractUser):
     first_name = None
     last_name = None
-    is_staff = None
+    is_staff = models.BooleanField(default=False)
     date_joined = None
     objects = UserManager()
 

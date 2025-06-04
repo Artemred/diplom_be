@@ -413,6 +413,7 @@ class VacancyViewsTestCase(TransactionTestCase):
         res = self.client.post(f"/api/v1/vacancies/responses/{vacancy.pk}", {}, headers={"Authorization": self.token})
         self.assertEqual(res.status_code, 403)  # should be forbidden for HR
 
+
 class OtherViewsTestCase(TransactionTestCase):
     def setUp(self):
         fill_db()
