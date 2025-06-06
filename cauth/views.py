@@ -99,7 +99,54 @@ class ProfileExtrasAPIView(APIView):
         return Response(serializer.data, status=HTTP_200_OK)
 
     def patch(self, request, pk, extras):
-        pass
+        try:
+            u = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=HTTP_400_BAD_REQUEST)
+            
+        if request.user.pk != pk:
+            return Response({"error": "You can only update your own profile"}, status=HTTP_403_FORBIDDEN)
+            
+        try:
+            extras_instance = u.get_extras_for_role(extras)
+        except Exception as e:
+            return Response({"error": str(e)}, status=HTTP_400_BAD_REQUEST)
+            
+        if extras != "Worker":
+            return Response({"error": "CV can only be updated for Worker profiles"}, status=HTTP_400_BAD_REQUEST)
+            
+        serializer = self.extras_serializers_mapping[extras_instance.__class__](extras_instance, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=HTTP_200_OK)
+        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+        
+    def delete(self, request, pk, extras):
+
+        try:
+            u = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=HTTP_400_BAD_REQUEST)
+            
+        if request.user.pk != pk:
+            return Response({"error": "You can only delete your own CV"}, status=HTTP_403_FORBIDDEN)
+            
+        try:
+            extras_instance = u.get_extras_for_role(extras)
+        except Exception as e:
+            return Response({"error": str(e)}, status=HTTP_400_BAD_REQUEST)
+            
+        if extras != "Worker":
+            return Response({"error": "CV can only be deleted for Worker profiles"}, status=HTTP_400_BAD_REQUEST)
+            
+        if not extras_instance.cv:
+            return Response({"error": "No CV found to delete"}, status=HTTP_400_BAD_REQUEST)
+            
+        extras_instance.cv.delete(save=False)  
+        extras_instance.cv = None
+        extras_instance.save()
+        
+        return Response({"message": "CV deleted successfully"}, status=HTTP_200_OK)
 
     
 class VacancyAPIView(APIView):
@@ -348,13 +395,14 @@ class VacancyResponsesAPIView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk):  # for vacancy
+    def get(self, request, pk):  # for vacancy todo add percent
         try:
-            vacancy = Vacancy.objects.prefetch_related("related_responses").get(pk=pk)
+            vacancy = Vacancy.objects.prefetch_related("related_responses", "related_responses__worker").get(pk=pk)
         except Vacancy.DoesNotExist:
             return Response({"error": "vacancy does not exists"}, status=HTTP_400_BAD_REQUEST)
         serializer = VacancyResponsesSerializer(vacancy.related_responses, many=True)
-        return Response(serializer.data, status=HTTP_200_OK)
+        data = self.calculate_relevance(serializer.data, vacancy.related_responses.all(), vacancy)
+        return Response(data, status=HTTP_200_OK)
     
     def post(self, request, pk):
         try:
@@ -389,6 +437,25 @@ class VacancyResponsesAPIView(APIView):
         response.status = VacancyResponseStatuses.objects.get(name=request.data["status"])
         response.save()
         return Response({}, status=HTTP_200_OK)
+    
+    def calculate_relevance(self, data, queryset, vacancy):
+        vacancy_skills = vacancy.related_vs.all()
+        relevance_count = dict(Counter(vacancy_skills.values_list("relevance", flat=True)))
+        relevance_sum = sum(relevance_count.keys())
+        wages = {i.skill_id:((100/relevance_sum)*i.relevance)/relevance_count[i.relevance] 
+                for i in vacancy_skills}
+        #print(wages)
+        for i, j in zip(data, queryset):
+            explain = {}
+            worker_skills = list(j.worker.related_sw.all())
+            relevance = 0
+            for skill in worker_skills:
+                if skill.skill_id in wages:
+                    relevance += wages[skill.skill_id]
+                    explain[skill.skill.name] = wages[skill.skill_id]
+            i["relevance"] = relevance
+            i["explain"] = explain
+        return data
 
 
 class WorkerResponsesAPIView(APIView):

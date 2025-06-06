@@ -1,4 +1,4 @@
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer, FileField
 from .models import User, Role, WorkerExtras, HRExtras, Requirements, RequirementTypes, RequirementOptions, Skills, requirement_workers, SkillTags, skills_workers, VacancyResponseStatuses
 from .models import Vacancy, vacancy_requirements, vacancy_skills, vacancy_responses, SavedVacancies, SavedUsers, Complains, ComplainReasons, VacancyQuickResponses
 from rest_framework.serializers import PrimaryKeyRelatedField, SlugRelatedField
@@ -82,9 +82,11 @@ class RoleSerializer(ModelSerializer):
 class WorkerExtrasSerializer(ModelSerializer):
     get_requirements = RequirementWorkersSerializer(many=True)
     get_skills = SkillsWorkersSerializer(many=True)
+    cv = FileField(required=False, allow_null=True)
+    
     class Meta:
         model = WorkerExtras
-        fields = ["get_requirements", "get_skills"]
+        fields = ["get_requirements", "get_skills", "cv"]
 
 
 class ShortUserSerializer(ModelSerializer):

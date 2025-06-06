@@ -154,6 +154,7 @@ class SkillTagsManager(models.Manager):
         self.create(name="Jira")
         self.create(name="Trello")
 
+
 class VacancyResponseStatusManager(models.Manager):
     def generate(self):
         self.create(name="Created")
@@ -285,6 +286,7 @@ class WorkerExtras(GenericExtras):
     requirements = models.ManyToManyField(to="Requirements", through="requirement_workers", through_fields=("worker", "requirement"))
     skills = models.ManyToManyField(to="Skills", through="skills_workers", through_fields=("worker", "skill"))
     user = models.OneToOneField(to=User, related_name="related_workers", on_delete=models.CASCADE)
+    cv = models.FileField(upload_to="media/cvs", null=True, blank=True)
 
     def add_requirement(self, req_instance: "Requirements", options: Union[List["RequirementOptions"], Tuple["RequirementOptions"]]=[], custom_answer: str=None):
         mw_instance = requirement_workers.objects.create(worker=self, requirement=req_instance)
