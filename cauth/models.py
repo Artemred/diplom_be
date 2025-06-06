@@ -46,6 +46,7 @@ class RequirementsManager(models.Manager):
         self.create(name="Salary", requirement_type=both_type, multiple_answers=True)
         self.create(name="Education", requirement_type=both_type, multiple_answers=False)
         self.create(name="City", requirement_type=both_type, multiple_answers=False)
+        self.create(name="Work format", requirement_type=both_type, multiple_answers=True) 
 
 
 class RequirementOptionsManager(models.Manager):
@@ -55,14 +56,24 @@ class RequirementOptionsManager(models.Manager):
             self.create(requirement=r, value=i)
 
         sl = Requirements.objects.get(name="Salary")
-        self.create(requirement=sl, value="10")
+        self.create(requirement=sl, value="10000₴-15000₴")
+        self.create(requirement=sl, value="15000₴-20000₴")
+        self.create(requirement=sl, value="20000₴-25000₴")
+        self.create(requirement=sl, value="25000₴-30000₴")
+        self.create(requirement=sl, value="30000₴+")
+        self.create(requirement=sl, value="50000₴+")
+        
 
         r = Requirements.objects.get(name="Education")
-        for i in ["Courses", "Bachelor"]:
+        for i in ["Courses", "Bachelor", "Master", "PhD"]:
             self.create(requirement=r, value=i)
         
         r = Requirements.objects.get(name="City")
-        for i in ["Kyiv", "Lviv"]:
+        for i in ["Kyiv", "Lviv", "Sumy", "Kharkiv", "Dnipro", "Chernihiv", "Chernobyl", "Zaporizhzhia", "Ivano-Frankivsk", "Mykolaiv", "Odesa", "Poltava", "Simferopol", "Ternopil", "Vinnytsia", "Zhytomyr"]:
+            self.create(requirement=r, value=i)
+        
+        r = Requirements.objects.get(name="Work format")
+        for i in ["Local", "Remote"]:
             self.create(requirement=r, value=i)
 
 
@@ -77,6 +88,42 @@ class SkillsManager(models.Manager):
         o.add_tags(["Python", "Backend"])
         o = self.create(name="React")
         o.add_tags(["Frontend", "NodeJS"])
+        o = self.create(name="Angular")
+        o.add_tags(["Frontend", "NodeJS"])
+        o = self.create(name="Vue")
+        o.add_tags(["Frontend", "NodeJS"])
+        o = self.create(name="Python")
+        o.add_tags(["Python"])
+        o = self.create(name="Selenium")
+        o.add_tags(["Python"])
+        o = self.create(name="Docker")
+        o.add_tags(["Docker"])
+        o = self.create(name="Git")
+        o.add_tags(["Git"])
+        o = self.create(name="GitHub")
+        o.add_tags(["Git"])
+        o = self.create(name="GitLab")
+        o.add_tags(["Git"])
+        o = self.create(name="Bitbucket")
+        o.add_tags(["Git"])
+        o = self.create(name="Jira")
+        o.add_tags(["Project management"])
+        o = self.create(name="Trello")
+        o.add_tags(["Project management"])
+        o = self.create(name="PostgreSQL")
+        o.add_tags(["Database"])
+        o = self.create(name="MySQL")
+        o.add_tags(["Database"])
+        o = self.create(name="MongoDB")
+        o.add_tags(["Database"])
+        o = self.create(name="Redis")
+        o.add_tags(["Database"])
+        o = self.create(name="Firebase")
+        o.add_tags(["Database"])
+        o = self.create(name="Firebase")
+        o.add_tags(["Database"])
+        o = self.create(name="Firebase")
+        o.add_tags(["Database"])
 
 
 class SkillTagsManager(models.Manager):
@@ -87,7 +134,17 @@ class SkillTagsManager(models.Manager):
         self.create(name="C#")
         self.create(name="Python")
         self.create(name="NodeJS")
-
+        self.create(name="Java")
+        self.create(name="C++")
+        self.create(name="C")
+        self.create(name="Go")
+        self.create(name="Rust")
+        self.create(name="PHP")
+        self.create(name="Ruby")
+        self.create(name="TypeScript")
+        self.create(name="HTML")
+        self.create(name="CSS")
+        self.create(name="JavaScript")
 
 class VacancyResponseStatusManager(models.Manager):
     def generate(self):

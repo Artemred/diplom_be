@@ -143,22 +143,22 @@ class ChatListConsumer(AsyncWebsocketConsumer):
         else:
             return False
 
-    async def connect(self):  # TODO initial chats transition
+    async def connect(self): 
         user = await self._authorize()
         if not user:
             await self.close(code=4001, reason="Authorization error")
             return
         self.layer_name = "chat_list_updates_"+str(user.pk)
-        await self.channel_layer.group_add(self.layer_name, self.channel_name)  # channel creation
+        await self.channel_layer.group_add(self.layer_name, self.channel_name)  
         await self.accept()
         chats = await sync_to_async(Chat.objects.filter)(Q(user1=user)|Q(user2=user))
         serializer = ChatSerializer(chats, many=True)     
         data = await sync_to_async(lambda: serializer.data)()
-        for i, j in zip(data, chats):  # TODO try to do it from serializer
+        for i, j in zip(data, chats): 
             i["unread"] = await sync_to_async(j.get_unread)(user)
         await self.send(text_data=json.dumps(data))
     
-    async def receive(self, text_data):  # useless for now
+    async def receive(self, text_data): 
         return await super().receive(text_data)
     
     async def disconnect(self, code):

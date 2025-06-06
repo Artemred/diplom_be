@@ -46,16 +46,12 @@ urlpatterns = [
     path("complains/<int:pk>", ComplainDetailsAPIView.as_view()),
     path("complain-reasons/", ComplainReasonsAPIView.as_view()),
     
-    # VacancyQuickResponses URLs
     path("vacancies/<int:vacancy_pk>/quick-responses/", VacancyQuickResponsesListAPIView.as_view()),  # GET (list), POST (create)
     path("quick-responses/<int:pk>/", VacancyQuickResponsesDetailAPIView.as_view()),  # GET, PUT, PATCH, DELETE
     
-    # VacancyResponseStatuses URL
     path("vacancy-response-statuses/", VacancyResponseStatusesListAPIView.as_view()),  # GET (list)
     
-    # ChatQuickResponses URLs
     path("chat/<str:chat_key>/quick-responses/", ChatQuickResponsesListAPIView.as_view()),  # GET (list)
 
-    # ComplainDeletionAPIView
     path("complains/delete/", ComplainDeletionAPIView.as_view()),
 ]
