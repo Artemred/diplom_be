@@ -145,6 +145,14 @@ class SkillTagsManager(models.Manager):
         self.create(name="HTML")
         self.create(name="CSS")
         self.create(name="JavaScript")
+        self.create(name="Database")
+        self.create(name="Docker")
+        self.create(name="Git")
+        self.create(name="GitHub")
+        self.create(name="GitLab")
+        self.create(name="Bitbucket")
+        self.create(name="Jira")
+        self.create(name="Trello")
 
 class VacancyResponseStatusManager(models.Manager):
     def generate(self):

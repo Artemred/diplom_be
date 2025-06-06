@@ -9,6 +9,9 @@ media/
 
 db.sqlite3
 
+# Environment variables
+.env
+
 .cache
 .cache_tags
 

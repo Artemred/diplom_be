@@ -53,7 +53,7 @@ class UserTestCase(TransactionTestCase):  # transaction test case because genera
 
         rc1 = RequirementOptions.objects.get(requirement=ri, value="8h") 
         rc2 = RequirementOptions.objects.get(requirement=ri, value="6h")
-        sl1 = RequirementOptions.objects.get(requirement=sl, value="10")
+        sl1 = RequirementOptions.objects.get(requirement=sl, value="10000₴-15000₴")
         extras.add_requirement(ri, options=[rc1, rc2])
         self.assertEqual(extras.get_requirements()[0].get_options(), {'type': 'multiple', 'value': ['8h', '6h']})  # test multiple requirement creation
         extras.get_requirements()[0].delete()
@@ -84,7 +84,7 @@ class UserTestCase(TransactionTestCase):  # transaction test case because genera
         u.add_role("Worker")
         s = Skills.objects.get(name="Django")
         s2 = Skills.objects.get(name="React")
-        self.assertEqual([i.name for i in s.tags.all()], ["Python", "Backend"])  # testing tags of created skills
+        self.assertEqual([i.name for i in s.tags.all()], ["Backend", "Python"])  # testing tags of created skills
         we = u.get_extras_for_role("Worker")
         we.add_skill(s, description="im baboon")
         we.add_skill(s2, description="im baboon")
@@ -131,7 +131,7 @@ class UserTestCase(TransactionTestCase):  # transaction test case because genera
         vacancy.get_requirements()[0].delete()
         rc1 = RequirementOptions.objects.get(requirement=ri, value="8h") 
         rc2 = RequirementOptions.objects.get(requirement=ri, value="6h")
-        sl1 = RequirementOptions.objects.get(requirement=sl, value="10")
+        sl1 = RequirementOptions.objects.get(requirement=sl, value="10000₴-15000₴")
         v.add_requirement(ri, options=[rc1, rc2])
         self.assertEqual(v.get_requirements()[0].get_options(), {'type': 'multiple', 'value': ['8h', '6h']})  # test multiple requirement creation
         v.get_requirements()[0].delete()

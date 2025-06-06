@@ -1,12 +1,13 @@
-from configurations import Configuration
+from configurations import Configuration, values
 from pathlib import Path
+import os
 
 class Dev(Configuration):
     BASE_DIR = Path(__file__).resolve().parent.parent
 
-    SECRET_KEY = 'django-insecure-dq600=6x^n$k5u*)&^$_7z6c6r+w35)px=h9k(32r@f1oaxiz3'  # todo env
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'default-insecure-key')
 
-    DEBUG = True  # todo env
+    DEBUG = os.environ.get('DEBUG', 'true').lower() == 'true'
 
     ALLOWED_HOSTS = []
 
@@ -65,8 +66,12 @@ class Dev(Configuration):
 
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME', 'diplom_db'),
+            'USER': os.environ.get('DB_USER', 'diplom_user'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+            'HOST': os.environ.get('DB_HOST', 'localhost'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
         }
     }
 
@@ -116,7 +121,8 @@ class Dev(Configuration):
         "default": {
             "BACKEND": "channels_redis.core.RedisChannelLayer",
             "CONFIG": {
-                "hosts": [("127.0.0.1", 6379)],
+                "hosts": [(os.environ.get('REDIS_HOST', '127.0.0.1'), 
+                           int(os.environ.get('REDIS_PORT', '6379')))],
             },
         },
     }

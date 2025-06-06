@@ -1,4 +1,4 @@
-from django.test import TestCase, Client
+from django.test import TestCase, Client, TransactionTestCase
 from channels.testing import HttpCommunicator, WebsocketCommunicator
 from .consumers import ChatConsumer
 from channels.routing import URLRouter
@@ -8,7 +8,7 @@ from .models import Chat, Message
 from rest_framework.authtoken.models import Token
 from asgiref.sync import sync_to_async
 
-class ChatTestCase(TestCase):
+class ChatTestCase(TransactionTestCase):
     def setUp(self):
         u1 = User.objects.create(username="u1")
         self.token = f"Token {Token.objects.get(user=u1).key}"
