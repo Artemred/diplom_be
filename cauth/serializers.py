@@ -1,6 +1,6 @@
 from rest_framework.serializers import ModelSerializer
 from .models import User, Role, WorkerExtras, HRExtras, Requirements, RequirementTypes, RequirementOptions, Skills, requirement_workers, SkillTags, skills_workers, VacancyResponseStatuses
-from .models import Vacancy, vacancy_requirements, vacancy_skills, vacancy_responses, SavedVacancies, SavedUsers, Complains, ComplainReasons
+from .models import Vacancy, vacancy_requirements, vacancy_skills, vacancy_responses, SavedVacancies, SavedUsers, Complains, ComplainReasons, VacancyQuickResponses
 from rest_framework.serializers import PrimaryKeyRelatedField, SlugRelatedField
 
 #----------------------worker-----------------------------
@@ -223,3 +223,18 @@ class ShortComplainSerializer(ModelSerializer):
     class Meta:
         model = Complains
         fields = ["pk", "description", "status"]
+
+
+class VacancyResponseStatusesSerializer(ModelSerializer):
+    class Meta:
+        model = VacancyResponseStatuses
+        fields = ['pk', 'name']
+
+
+class VacancyQuickResponsesSerializer(ModelSerializer):
+    related_status_name = SlugRelatedField(slug_field='name', read_only=True)
+    related_status = PrimaryKeyRelatedField(queryset=VacancyResponseStatuses.objects.all())
+    
+    class Meta:     
+        model = VacancyQuickResponses
+        fields = ['pk', 'name', 'response_text', 'related_status', 'related_status_name', 'vacancy']

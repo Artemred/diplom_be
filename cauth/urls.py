@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework.authtoken.views import obtain_auth_token
-from .views import Register, OccupiedUsernames, ProfileView, ProfileExtrasAPIView, VacancyAPIView, WorkerRequirementsAPIVIew, VacancyRequirementsAPIView, WorkerSkillsAPIView, VacancySkillsAPIView, RequirementsListAPIView, SkillsListAPIView, RequirementsOptionsAPIView, VacancyListAPIView, VacancyCreationAPIView, WhoamiAPIView, OwnVacanciesAPIView, AddRoleAPIView, WorkerResponsesAPIView, VacancyResponsesAPIView, SavedUsersListAPIView, SavedUsersDeleteAPIView, SavedVacanciesListAPIView, SavedVacanciesDeleteAPIView, WorkerListAPIView, CreateChatAPIView, ComplainAPIView, ComplainDetailsAPIView, ComplainReasonsAPIView
+from .views import Register, OccupiedUsernames, ProfileView, ProfileExtrasAPIView, VacancyAPIView, WorkerRequirementsAPIVIew, VacancyRequirementsAPIView, WorkerSkillsAPIView, VacancySkillsAPIView, RequirementsListAPIView, SkillsListAPIView, RequirementsOptionsAPIView, VacancyListAPIView, VacancyCreationAPIView, WhoamiAPIView, OwnVacanciesAPIView, AddRoleAPIView, WorkerResponsesAPIView, VacancyResponsesAPIView, SavedUsersListAPIView, SavedUsersDeleteAPIView, SavedVacanciesListAPIView, SavedVacanciesDeleteAPIView, WorkerListAPIView, CreateChatAPIView, ComplainAPIView, ComplainDetailsAPIView, ComplainReasonsAPIView, VacancyQuickResponsesListAPIView, VacancyQuickResponsesDetailAPIView, VacancyResponseStatusesListAPIView, ChatQuickResponsesListAPIView, ComplainDeletionAPIView
 
 app_name = "cauth"
 
@@ -45,4 +45,17 @@ urlpatterns = [
     path("complains/", ComplainAPIView.as_view()),
     path("complains/<int:pk>", ComplainDetailsAPIView.as_view()),
     path("complain-reasons/", ComplainReasonsAPIView.as_view()),
+    
+    # VacancyQuickResponses URLs
+    path("vacancies/<int:vacancy_pk>/quick-responses/", VacancyQuickResponsesListAPIView.as_view()),  # GET (list), POST (create)
+    path("quick-responses/<int:pk>/", VacancyQuickResponsesDetailAPIView.as_view()),  # GET, PUT, PATCH, DELETE
+    
+    # VacancyResponseStatuses URL
+    path("vacancy-response-statuses/", VacancyResponseStatusesListAPIView.as_view()),  # GET (list)
+    
+    # ChatQuickResponses URLs
+    path("chat/<str:chat_key>/quick-responses/", ChatQuickResponsesListAPIView.as_view()),  # GET (list)
+
+    # ComplainDeletionAPIView
+    path("complains/delete/", ComplainDeletionAPIView.as_view()),
 ]

@@ -1,10 +1,10 @@
 from rest_framework.views import APIView
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
-from .models import User, Role, WorkerExtras, HRExtras, Vacancy, requirement_workers, vacancy_requirements, skills_workers, vacancy_skills, Requirements, Skills, RequirementOptions, vacancy_responses, VacancyResponseStatuses, vacancy_responses, SavedVacancies, SavedUsers, Complains, ComplainReasons
+from .models import User, Role, WorkerExtras, HRExtras, Vacancy, requirement_workers, vacancy_requirements, skills_workers, vacancy_skills, Requirements, Skills, RequirementOptions, vacancy_responses, VacancyResponseStatuses, vacancy_responses, SavedVacancies, SavedUsers, Complains, ComplainReasons, VacancyQuickResponses
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_201_CREATED, HTTP_200_OK, HTTP_403_FORBIDDEN
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
-from .serializers import OwnProfileSeriaizer, OtherProfileSeriaizer, WorkerExtrasSerializer, HRExtrasSerializer, FullVacancySerializer, ShortVacancySerializer, RequirementWorkersSerializer, VacancyRequirementsSerializer, SkillsWorkersSerializer, VacancySkillsSerializer, RequirementsSerializer, SkillsSerializer, RequirementOptionsSerializer, FullVacancySerializer, WhoamiProfileSerializer, VacancyResponsesSerializer, SavedVacanciesSerializer, SavedUsersSerializer, SavedVacanciesSerializer, ShortWorkerSerializer, ShortComplainSerializer, ComplainSerializer, ComplainReasonsSerializer
+from .serializers import OwnProfileSeriaizer, OtherProfileSeriaizer, WorkerExtrasSerializer, HRExtrasSerializer, FullVacancySerializer, ShortVacancySerializer, RequirementWorkersSerializer, VacancyRequirementsSerializer, SkillsWorkersSerializer, VacancySkillsSerializer, RequirementsSerializer, SkillsSerializer, RequirementOptionsSerializer, FullVacancySerializer, WhoamiProfileSerializer, VacancyResponsesSerializer, SavedVacanciesSerializer, SavedUsersSerializer, SavedVacanciesSerializer, ShortWorkerSerializer, ShortComplainSerializer, ComplainSerializer, ComplainReasonsSerializer, VacancyQuickResponsesSerializer, VacancyResponseStatusesSerializer
 from .filters import VacanciesFilter, WorkerExtrasFilter
 from django.db.models import Q
 from chat.models import Chat
@@ -580,4 +580,154 @@ class ComplainDetailsAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status=HTTP_200_OK)
         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+
+
+class VacancyQuickResponsesListAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
     
+    def get(self, request, vacancy_pk):
+        try:
+            vacancy = Vacancy.objects.get(pk=vacancy_pk)
+            if request.user != vacancy.hr.get_related_user() or "HR" not in request.user.roles.values_list("name", flat=True):
+                return Response({"error": "You don't have permission to view these quick responses"}, status=HTTP_403_FORBIDDEN)
+                
+            quick_responses = VacancyQuickResponses.objects.filter(vacancy=vacancy)
+            serializer = VacancyQuickResponsesSerializer(quick_responses, many=True)
+            return Response(serializer.data, status=HTTP_200_OK)
+        except Vacancy.DoesNotExist:
+            return Response({"error": "Vacancy not found"}, status=HTTP_400_BAD_REQUEST)
+    
+    def post(self, request, vacancy_pk):
+        try:
+            vacancy = Vacancy.objects.get(pk=vacancy_pk)
+            if request.user != vacancy.hr.get_related_user():
+                return Response({"error": "You don't have permission to create quick responses for this vacancy"}, status=HTTP_403_FORBIDDEN)
+                
+            data = request.data.copy()
+            data['vacancy'] = vacancy_pk
+            
+            serializer = VacancyQuickResponsesSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=HTTP_201_CREATED)
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+        except Vacancy.DoesNotExist:
+            return Response({"error": "Vacancy not found"}, status=HTTP_400_BAD_REQUEST)
+
+
+class VacancyQuickResponsesDetailAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, pk):
+        try:
+            quick_response = VacancyQuickResponses.objects.select_related("vacancy", "vacancy__hr").get(pk=pk)
+            if request.user != quick_response.vacancy.hr.get_related_user() or "HR" not in request.user.roles.values_list("name", flat=True):
+                return Response({"error": "You don't have permission to view this quick response"}, status=HTTP_403_FORBIDDEN)
+                
+            serializer = VacancyQuickResponsesSerializer(quick_response)
+            return Response(serializer.data, status=HTTP_200_OK)
+        except VacancyQuickResponses.DoesNotExist:
+            return Response({"error": "Quick response not found"}, status=HTTP_400_BAD_REQUEST)
+    
+    def put(self, request, pk):
+        try:
+            quick_response = VacancyQuickResponses.objects.select_related("vacancy", "vacancy__hr").get(pk=pk)
+            if request.user != quick_response.vacancy.hr.get_related_user() or "HR" not in request.user.roles.values_list("name", flat=True):
+                return Response({"error": "You don't have permission to update this quick response"}, status=HTTP_403_FORBIDDEN)
+                
+            serializer = VacancyQuickResponsesSerializer(quick_response, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=HTTP_200_OK)
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+        except VacancyQuickResponses.DoesNotExist:
+            return Response({"error": "Quick response not found"}, status=HTTP_400_BAD_REQUEST)
+    
+    def patch(self, request, pk):
+        try:
+            quick_response = VacancyQuickResponses.objects.select_related("vacancy", "vacancy__hr").get(pk=pk)
+            if request.user != quick_response.vacancy.hr.get_related_user() or "HR" not in request.user.roles.values_list("name", flat=True):
+                return Response({"error": "You don't have permission to update this quick response"}, status=HTTP_403_FORBIDDEN)
+                
+            serializer = VacancyQuickResponsesSerializer(quick_response, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=HTTP_200_OK)
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+        except VacancyQuickResponses.DoesNotExist:
+            return Response({"error": "Quick response not found"}, status=HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, pk):
+        try:
+            quick_response = VacancyQuickResponses.objects.select_related("vacancy", "vacancy__hr").get(pk=pk)
+            if request.user != quick_response.vacancy.hr.get_related_user() or "HR" not in request.user.roles.values_list("name", flat=True):
+                return Response({"error": "You don't have permission to delete this quick response"}, status=HTTP_403_FORBIDDEN)
+                
+            quick_response.delete()
+            return Response({}, status=HTTP_200_OK)
+        except VacancyQuickResponses.DoesNotExist:
+            return Response({"error": "Quick response not found"}, status=HTTP_400_BAD_REQUEST)
+
+
+class VacancyResponseStatusesListAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        statuses = VacancyResponseStatuses.objects.all()
+        serializer = VacancyResponseStatusesSerializer(statuses, many=True)
+        return Response(serializer.data, status=HTTP_200_OK)
+
+
+class ChatQuickResponsesListAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, chat_key):
+        try:
+            chat = Chat.objects.select_related("vacancy", "user1", "user2").get(chat_key=chat_key)
+            if chat.vacancy.hr.get_related_user() != request.user:
+                return Response({"error": "You don't have permission to view these quick responses"}, status=HTTP_403_FORBIDDEN)
+            if chat.user1 == request.user:
+                worker = chat.user2.get_extras_for_role("Worker")
+            else:
+                worker = chat.user1.get_extras_for_role("Worker")
+            
+            response = vacancy_responses.objects.filter(vacancy=chat.vacancy, worker=worker).first()
+            if not response:
+                return Response({"error": "Response not found"}, status=HTTP_400_BAD_REQUEST)
+            
+            quick_responses = VacancyQuickResponses.objects.filter(vacancy=chat.vacancy, related_status=response.status)
+            serializer = VacancyQuickResponsesSerializer(quick_responses, many=True)
+            return Response(serializer.data, status=HTTP_200_OK)
+        except Chat.DoesNotExist:
+            return Response({"error": "Chat not found"}, status=HTTP_400_BAD_REQUEST)
+        
+            
+class ComplainDeletionAPIView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        try:
+            complain = Complains.objects.get(pk=request.data["complain_id"])
+            if "Moderator" not in request.user.roles.values_list("name", flat=True):
+                return Response({"error": "Forbidden"}, status=HTTP_403_FORBIDDEN)
+
+            if complain.target_type == "Profile":
+                profile = User.objects.get(pk=complain.target_pk)
+                profile.delete()
+            elif complain.target_type == "Vacancy":
+                vacancy = Vacancy.objects.get(pk=complain.target_pk)
+                vacancy.delete()
+            complain.status = "Closed"
+            complain.save()
+            return Response({}, status=HTTP_200_OK)
+        except Complains.DoesNotExist:
+            return Response({"error": "Complain not found"}, status=HTTP_400_BAD_REQUEST)
+        except KeyError:
+            return Response({"error": "Complain ID not provided"}, status=HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=HTTP_400_BAD_REQUEST)
