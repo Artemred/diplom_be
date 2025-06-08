@@ -9,7 +9,7 @@ class Dev(Configuration):
 
     DEBUG = os.environ.get('DEBUG', 'true').lower() == 'true'
 
-    ALLOWED_HOSTS = []
+    ALLOWED_HOSTS = ['*']
 
 
 
@@ -131,5 +131,8 @@ class Dev(Configuration):
     AUTH_USER_MODEL = "cauth.User"
 
     CORS_ALLOW_ALL_ORIGINS = True
+    CORS_ALLOW_HEADERS = ['*']
+    CORS_ALLOW_METHODS = ['*']
+    CORS_ALLOW_CREDENTIALS = True
 
 
