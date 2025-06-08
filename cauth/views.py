@@ -283,7 +283,7 @@ class OwnVacanciesAPIView(APIView):
         return Response(serializer.data)
 
 
-class WorkerRequirementsAPIVIew(APIView):  # TODO post with similar requirement adds new option
+class WorkerRequirementsAPIVIew(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -350,7 +350,7 @@ class VacancySkillsAPIView(VacancyRequirementsAPIView):
     model_class = vacancy_skills
 
 
-class RequirementsListAPIView(APIView):  # TODO group or both
+class RequirementsListAPIView(APIView):
     def get(self, request, group, part=""):
         data = Requirements.objects.filter(Q(requirement_type__name=group) | Q(requirement_type__name="Both"))
         if part:

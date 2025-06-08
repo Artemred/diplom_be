@@ -164,7 +164,7 @@ class OtherProfileSeriaizer(ModelSerializer):
         fields = ["pk", "username", "full_name", "photo", "description", "roles"]
 
 
-class FullVacancySerializer(ModelSerializer):  #this zalupina works only below HRExtrasSerializer class definition. Dont ask me why
+class FullVacancySerializer(ModelSerializer):
     get_requirements = VacancyRequirementsSerializer(many=True, read_only=True)
     get_skills = VacancySkillsSerializer(many=True, read_only=True)
     hr = PrimaryKeyRelatedField(queryset=HRExtras.objects.all())

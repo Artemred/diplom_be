@@ -174,7 +174,7 @@ class User(AbstractUser):
     USERNAME_FIELD = "username"
     REQUIRED_FIELDS = []
 
-    full_name = models.CharField(max_length=64, null=True, blank=True)  # todo null
+    full_name = models.CharField(max_length=64, null=True, blank=True)
     email = models.EmailField(max_length=254, null=True, blank=True)
     phone = models.CharField(max_length=12, null=True, blank=True)
     photo = models.ImageField(upload_to="media/photos", null=True, blank=True)
@@ -275,7 +275,7 @@ class GenericExtras(models.Model):
     def get_related_user(self):
         try:
             return self.user
-        except IndexError:  # artifact
+        except IndexError:
             raise ValueError("Extras instance is not bound")
 
     class Meta:
@@ -353,7 +353,7 @@ class Companies(models.Model):
     name = models.CharField(max_length=32 ,unique=True)
 
 
-class company_hrs(models.Model): # idea add stage in company
+class company_hrs(models.Model):
     company = models.ForeignKey(to="Companies", on_delete=models.CASCADE, related_name="related_ch")
     hr = models.ForeignKey(to="HRExtras", on_delete=models.CASCADE, related_name="related_ch")
 
@@ -365,7 +365,7 @@ class RequirementTypes(models.Model):
     objects = RequirementTypesManager()
 
 
-class Requirements(models.Model):  # TODO merge same requirements
+class Requirements(models.Model):
     name = models.CharField(max_length=32)
     requirement_type = models.ForeignKey(to="RequirementTypes", on_delete=models.CASCADE, related_name="related_requirements")
     multiple_answers = models.BooleanField(default=False)
@@ -385,10 +385,10 @@ class requirement_workers(models.Model):
     custom_answer = models.CharField(max_length=128, null=True, blank=True)
     multiple_options = models.ManyToManyField(to="RequirementOptions", through="multiple_requirement_options", through_fields=("rw", "option"))
 
-    def get_options(self):  # TODO migrate method to serializers
+    def get_options(self):
         if self.custom_answer:
             return {"type": "custom", "value": [self.custom_answer]}
-        else:  # must prefetch related_mro
+        else:
             value = [i.value for i in self.multiple_options.all()]
             if len(value) == 1:
                 return {"type": "single", "value": value}

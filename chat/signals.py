@@ -32,10 +32,10 @@ async def chat_room_created_or_updated_handler(sender, instance, created, **kwar
         pass
 
 @receiver(pre_delete, sender=Chat)
-async def chat_room_deleted_handler(sender, instance, **kwargs):  # TODO send message to chat room 
+async def chat_room_deleted_handler(sender, instance, **kwargs):   
     channel_layer = get_channel_layer()
     await channel_layer.group_send(
-        "chat_list_updates_"+str(instance.user1_id),  # on delete model cant load related fields 
+        "chat_list_updates_"+str(instance.user1_id), 
         {
             "type": "chat.list.activity",
             "event": "chat_deleted",
@@ -50,8 +50,6 @@ async def chat_room_deleted_handler(sender, instance, **kwargs):  # TODO send me
             "chat_key": instance.chat_key,
         },
     )
-
-#  TODO message creation messages chatlist about changed last message
 
 @receiver(post_save, sender=Message)
 async def chat_list_last_message_update(sender, instance, **kwargs):
