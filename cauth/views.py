@@ -566,7 +566,7 @@ class CreateChatAPIView(APIView):
             return Response({"error": "Vacancy does not exists"}, status=HTTP_400_BAD_REQUEST)
         
         if vacancy_responses.objects.filter(vacancy=vacancy, worker=user.get_extras_for_role("Worker")).exists():
-            return Response({"error": "Response already exists", "chat_key": Chat.objects.get(Q(user1=request.user, user2=user) | Q(user1=user, user2=request.user)).chat_key}, status=HTTP_400_BAD_REQUEST)
+            return Response({"error": "Response already exists", "chat_key": Chat.objects.filter(Q(user1=request.user, user2=user) | Q(user1=user, user2=request.user)).first().chat_key}, status=HTTP_400_BAD_REQUEST)
         else:
             vacancy_responses.objects.create(vacancy=vacancy, worker=user.get_extras_for_role("Worker"), status=VacancyResponseStatuses.objects.get(name="Created"))
             if not Chat.objects.filter(user1=request.user, user2=user).exists():
